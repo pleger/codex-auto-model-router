@@ -1,27 +1,37 @@
 # Codex Auto Model Router
 
-**Pick a sensible Codex model before you start a coding task.**
+**Pick a sensible Codex model and token budget before you start a coding task.**
 
 The strongest model can be useful for a difficult investigation, but many changes are clear and routine. Codex Auto Model Router reads your task description and recommends a model and reasoning effort, with a short explanation of why it chose them.
 
 The project is at its first usable milestone. **`recommend` only gives advice. It does not start Codex, run commands, read your repository, or change files.**
 
-## Try it in a minute
+## Start here
 
-You need Node.js 20 or newer. From this repository:
+You need Node.js 20 or newer. Install the command-line tool:
 
 ```bash
-npm install
-node bin/codex-auto.js recommend \
+npm install -g codex-auto-model-router
+codex-auto recommend \
   "Investigate why this test fails only when the entire suite runs"
 ```
 
-You should see a recommendation like this:
+Or run the current GitHub source directly:
+
+```bash
+git clone https://github.com/pleger/codex-auto-model-router.git
+cd codex-auto-model-router
+npm install
+node bin/codex-auto.js recommend "Investigate why this test fails only when the entire suite runs"
+```
+
+You should see a recommendation similar to this:
 
 ```text
 Recommended: GPT-5.6 Sol / high
 Confidence: 69% (heuristic signal coverage)
 Score: 7 raw; 8/12 weighted
+Suggested token budget: 32,000 total tokens (likely range: 20,000–45,000)
 
 Complexity:
   ambiguity      2
@@ -36,7 +46,9 @@ Why:
   - Reproduction or iterative validation may be needed.
 ```
 
-For a shorter command while working locally, run `npm link` once and use `codex-auto recommend "Your task"`. You can omit `recommend`: `codex-auto "Fix a typo"` has the same safe, advice-only behavior.
+Every recommendation is local and advisory. The tool does not start Codex, inspect your repository, run commands, send your prompt anywhere, or change files.
+
+For a shorter command while working from a clone, run `npm link` once. You can omit `recommend`: `codex-auto "Fix a typo"` has the same safe behavior.
 
 ## Examples
 
@@ -47,7 +59,7 @@ codex-auto recommend "Rename symbols across 100 files"
 # JSON output for a script, editor tool, or experiment.
 codex-auto recommend --json "Add validation to the controller and service"
 
-# Keep a longer task in a UTF-8 plain text file.
+# Keep a longer or multiline task in a UTF-8 plain-text file.
 codex-auto recommend --prompt-file task.txt
 
 # Keep recommendations at or below a model you choose.
@@ -76,6 +88,15 @@ The initial registry covers GPT-5.6 Luna, Terra, and Sol, plus GPT-6 Astra. Mode
 
 These limits are intentional: the project needs benchmark results before it can make evidence-based claims about success rates or cost per successful task.
 
+## Use it with Codex
+
+The router also provides reusable guidance for Codex-native workflows:
+
+- Copy the [AGENTS.md template](templates/AGENTS.md) into your project or Codex home for persistent routing guidance. See the [installation notes](docs/agents.md).
+- Use the repository's [model-router Skill](.agents/skills/model-router/SKILL.md) to ask Codex for the same recommendation policy. Its [guide](docs/skills.md) explains setup and limits.
+
+Both integrations reuse the CLI policy when it is available. They can recommend a model for a new task; they cannot change the model of a chat already in progress.
+
 ## Current status and roadmap
 
 | Mode | Status | Purpose |
@@ -85,13 +106,13 @@ These limits are intentional: the project needs benchmark results before it can 
 | `AGENTS.md` template | Available | Give Codex persistent routing guidance |
 | `model-router` Skill | Available | Reuse the same policy in Codex-native workflows |
 
-Copy the [AGENTS.md template](templates/AGENTS.md) into your project or Codex home, and see the [installation notes](docs/agents.md). The [model-router Skill](.agents/skills/model-router/SKILL.md) is discoverable from this repository; its [guide](docs/skills.md) explains invocation and limits. Both use the CLI's configured policy when it is available. They cannot change the model of a running chat.
-
 Other planned work includes lightweight repository context, bounded validation-based escalation, local-only history, and benchmark tasks. The [implementation plan](docs/implementation-plan.md) explains the architecture and records the Codex behavior checked for this project, including JetBrains support and current integration limits.
 
 ## Contributing
 
 Feedback and benchmark tasks are especially useful at this stage. A helpful task example includes its description, the model you expected, the reason, and an objective way to check the result. Please avoid including private prompts, source code, or repository details you cannot share.
+
+The project is looking for contributors who can help with routing benchmarks, Codex workflow research, CLI and editor integrations, documentation, and real-world feedback. Start with [CONTRIBUTING.md](CONTRIBUTING.md), open an issue, or share a reproducible task example.
 
 To work on the router:
 
@@ -102,4 +123,4 @@ npm run check
 
 The CLI is in [bin/codex-auto.js](bin/codex-auto.js), routing logic is in [src/router.js](src/router.js), and tests are in [tests/router.test.js](tests/router.test.js). Recommendations run locally without an API key or network request. No task text is uploaded by this command.
 
-This project is released under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations, and [SECURITY.md](SECURITY.md) for private vulnerability reports.
+This project is released under the [MIT License](LICENSE). Find the package on [npm](https://www.npmjs.com/package/codex-auto-model-router). See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations, and [SECURITY.md](SECURITY.md) for private vulnerability reports.
