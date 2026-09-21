@@ -67,6 +67,19 @@ test('custom model can be selected without engine changes', () => {
   assert.equal(result.reasoning_effort, 'low');
 });
 
+test('custom configured factors change the recommendation without engine changes', () => {
+  const config = clone();
+  config.dimensions.compliance = {
+    weight: 3,
+    max: 2,
+    signals: [{ pattern: '\\b(HIPAA|regulated health data)\\b', score: 2, reason: 'Regulatory compliance needs careful handling.' }]
+  };
+  const result = recommend('Update HIPAA audit logging', config);
+  assert.equal(result.recommended_model, 'gpt-5.6-sol');
+  assert.equal(result.task_complexity.dimensions.compliance, 2);
+  assert.ok(result.explanation.includes('Regulatory compliance needs careful handling.'));
+});
+
 test('malformed registry and policy are rejected', () => {
   const config = clone();
   config.models[0].pricing.output = -1;
@@ -80,6 +93,9 @@ test('malformed registry and policy are rejected', () => {
   const badAstraPolicy = clone();
   delete badAstraPolicy.policy.allow_astra_automatic;
   assert.throws(() => validateConfig(badAstraPolicy), /allow_astra_automatic/);
+  const badCustomSignal = clone();
+  badCustomSignal.dimensions.compliance = { weight: 1, max: 2, signals: [{ pattern: '[', score: 2 }] };
+  assert.throws(() => validateConfig(badCustomSignal), /bad signal pattern/);
 });
 
 test('CLI parse and recommend JSON do not execute Codex', () => {

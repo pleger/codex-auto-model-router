@@ -133,6 +133,24 @@ For example, raise the importance of risky changes:
 
 Keep `max` at `2` with the current heuristic. Raising a `weight` moves matching tasks to higher capability tiers more readily.
 
+You can also add, remove, or rename factors without changing JavaScript. A factor needs a `weight`, a `max`, and optional task-text `signals`. Each signal is a case-insensitive JavaScript regular-expression string, its score when it matches, and an explanation included in the recommendation. For example, add a compliance factor:
+
+```json
+"compliance": {
+  "weight": 3,
+  "max": 2,
+  "signals": [
+    {
+      "pattern": "\\b(HIPAA|GDPR|audit trail|regulated health data)\\b",
+      "score": 2,
+      "reason": "Regulatory compliance needs careful handling."
+    }
+  ]
+}
+```
+
+With this configuration, a task mentioning `HIPAA` receives a compliance score of 2 and the custom explanation. A higher weight makes that signal contribute more to the recommended tier. Configuration validation rejects invalid regular expressions, scores outside `1` through the factor's `max`, and malformed factor definitions.
+
 ### `policy`: set escalation and planning rules
 
 `tier_thresholds` maps the weighted score to capability tiers. The default `[2.5, 5.5, 9]` means Luna below 2.5, Terra from 2.5 to below 5.5, Sol from 5.5 to below 9, and Astra at 9 or above. Lower a threshold to escalate sooner; raise it to favour lower tiers.

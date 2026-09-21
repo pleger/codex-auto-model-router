@@ -1,5 +1,4 @@
 const EFFORTS = ['none', 'low', 'medium', 'high', 'xhigh', 'max', 'ultra'];
-const DIMENSIONS = ['ambiguity', 'scope', 'reasoning', 'dependencies', 'verification', 'risk'];
 const patterns = [
   { id: 'mechanical', re: /\b(rename|reformat|format|typo|spelling|documentation|docstring|comment|repetitive|mechanical|straightforward|precisely specified)\b/i, text: 'Transformation appears explicit or mechanical.' },
   { id: 'feature', re: /\b(implement|add|create|feature|endpoint|validation|interface|controller|service|repository)\b/i, text: 'Implementation choices are likely.' },
@@ -14,13 +13,35 @@ const patterns = [
 
 function assert(condition, message) { if (!condition) throw new Error(`Invalid configuration: ${message}`); }
 
+function dimensionsFor(config) { return Object.keys(config.dimensions); }
+
+function customSignals(config) {
+  return dimensionsFor(config).flatMap(dimension => (config.dimensions[dimension].signals ?? []).map((signal, index) => ({
+    id: `${dimension}:${index + 1}`,
+    dimension,
+    re: new RegExp(signal.pattern, 'i'),
+    score: signal.score,
+    text: signal.reason ?? `Custom ${dimension} signal detected.`
+  })));
+}
+
 export function validateConfig(config) {
   assert(config && typeof config === 'object', 'root must be an object');
   assert(config.schema_version === 1, 'schema_version must be 1');
   assert(config.dimensions && typeof config.dimensions === 'object', 'dimensions are required');
-  for (const key of DIMENSIONS) {
+  assert(Object.keys(config.dimensions).length > 0, 'at least one dimension is required');
+  for (const key of dimensionsFor(config)) {
     const d = config.dimensions[key];
     assert(d && Number.isFinite(d.weight) && d.weight >= 0 && Number.isInteger(d.max) && d.max >= 1, `bad dimension ${key}`);
+    if (d.signals !== undefined) {
+      assert(Array.isArray(d.signals), `signals must be an array for ${key}`);
+      for (const signal of d.signals) {
+        assert(signal && typeof signal.pattern === 'string' && signal.pattern, `bad signal pattern for ${key}`);
+        try { new RegExp(signal.pattern, 'i'); } catch { throw new Error(`Invalid configuration: bad signal pattern for ${key}`); }
+        assert(Number.isInteger(signal.score) && signal.score >= 1 && signal.score <= d.max, `bad signal score for ${key}`);
+        assert(signal.reason === undefined || typeof signal.reason === 'string', `bad signal reason for ${key}`);
+      }
+    }
   }
   assert(config.policy && Array.isArray(config.policy.tier_thresholds) && config.policy.tier_thresholds.length === 3, 'three tier_thresholds are required');
   const thresholds = config.policy.tier_thresholds;
@@ -51,6 +72,8 @@ export function validateConfig(config) {
 export function analyze(task, config) {
   if (typeof task !== 'string' || !task.trim()) throw new Error('A nonempty task is required');
   const signals = patterns.filter(p => p.re.test(task)).map(({ id, text }) => ({ id, text }));
+  const configuredSignals = customSignals(config).filter(signal => signal.re.test(task));
+  signals.push(...configuredSignals.map(({ id, text }) => ({ id, text })));
   const has = id => signals.some(s => s.id === id);
   const score = {
     ambiguity: has('debug') ? 2 : has('feature') ? 1 : 0,
@@ -60,10 +83,17 @@ export function analyze(task, config) {
     verification: has('iterative') ? 2 : /\b(test|build|lint|typecheck|verify|validation)\b/i.test(task) || has('feature') || has('debug') ? 1 : 0,
     risk: has('high_risk') ? 2 : /\b(regression|breaking|database|deploy)\b/i.test(task) ? 1 : 0
   };
-  for (const key of DIMENSIONS) score[key] = Math.min(score[key], config.dimensions[key].max);
-  const raw = DIMENSIONS.reduce((sum, key) => sum + score[key], 0);
-  const weighted = DIMENSIONS.reduce((sum, key) => sum + score[key] * config.dimensions[key].weight, 0);
-  const maximum = DIMENSIONS.reduce((sum, key) => sum + config.dimensions[key].max * config.dimensions[key].weight, 0);
+  const dimensions = dimensionsFor(config);
+  for (const key of dimensions) {
+    score[key] = Math.min(score[key] ?? 0, config.dimensions[key].max);
+  }
+  for (const signal of configuredSignals) {
+    score[signal.dimension] = Math.max(score[signal.dimension], signal.score);
+  }
+  for (const key of Object.keys(score)) if (!dimensions.includes(key)) delete score[key];
+  const raw = dimensions.reduce((sum, key) => sum + score[key], 0);
+  const weighted = dimensions.reduce((sum, key) => sum + score[key] * config.dimensions[key].weight, 0);
+  const maximum = dimensions.reduce((sum, key) => sum + config.dimensions[key].max * config.dimensions[key].weight, 0);
   const confidence = Math.min(0.9, Math.round((signals.length ? 0.55 + Math.min(signals.length, 5) * 0.07 : 0.35) * 100) / 100);
   return { dimensions: score, raw, weighted, maximum, confidence, signals, signal_ids: signals.map(s => s.id) };
 }
