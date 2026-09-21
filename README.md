@@ -67,9 +67,10 @@ For example, a rename across many files can stay on Luna because the work is mec
 
 The initial registry covers GPT-5.6 Luna, Terra, and Sol, plus GPT-6 Astra. Model IDs, enabled status, reasoning levels, prices, and policy thresholds live in [config/default.json](config/default.json), so they can be updated without editing the routing engine. To try your own settings, copy that file and pass the **complete** JSON file with `--config path/to/router.json`.
 
-### Reading the cost and confidence fields
+### Reading the cost, confidence, and token budget fields
 
 - **Confidence** describes how many explicit task signals the heuristic recognized. It is not a measured probability that the selected model will solve the task.
+- **Suggested token budget** is a configurable planning target and range for the selected model and effort. It includes input, output, and reasoning tokens when the provider reports them. It is not an enforced limit, a prediction of billed credits, or a claim about the exact number of tokens Codex will use.
 - **Estimated cost** uses a sample token mix and dated [OpenAI API token prices](https://developers.openai.com/api/docs/models). It is a comparison aid, not a quote for your task or an estimate of Codex subscription credits. Different models and reasoning levels may use different numbers of tokens.
 - **Cheaper and stronger candidates** are options to consider. Their presence does not mean they are equally likely to succeed.
 

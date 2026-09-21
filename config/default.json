@@ -19,7 +19,14 @@
     "tier_thresholds": [2.5, 5.5, 9],
     "max_model": null,
     "allow_astra_automatic": false,
-    "estimated_tokens": { "input": 10000, "cached_input": 0, "output": 2000 }
+    "estimated_tokens": { "input": 10000, "cached_input": 0, "output": 2000 },
+    "token_budget": {
+      "base_total_by_capability": { "1": 4000, "2": 10000, "3": 20000, "4": 40000 },
+      "effort_multipliers": { "none": 0.8, "low": 1, "medium": 1.25, "high": 1.6, "xhigh": 2, "max": 2.5, "ultra": 3 },
+      "likely_range": { "lower_multiplier": 0.6, "upper_multiplier": 1.4 },
+      "unit": "total tokens",
+      "note": "Planning estimate for input, output, and reasoning when the provider reports them. It is not an enforced Codex limit or a prediction of billed credits."
+    }
   },
   "models": [
     { "id": "gpt-5.6-luna", "name": "GPT-5.6 Luna", "capability": 1, "enabled": true, "reasoning": ["none", "low", "medium", "high", "xhigh", "max"], "pricing": { "input": 0.2, "cached_input": 0.02, "output": 1.2 }, "context_tokens": 1050000 },

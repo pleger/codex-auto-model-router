@@ -14,6 +14,13 @@ test('large mechanical change stays on Luna', () => {
   assert.equal(result.recommended_model, 'gpt-5.6-luna');
   assert.equal(result.task_complexity.dimensions.scope, 1);
   assert.equal(result.task_complexity.dimensions.reasoning, 0);
+  assert.deepEqual(result.token_budget, {
+    suggested_total: 4000,
+    likely_minimum: 3000,
+    likely_maximum: 6000,
+    unit: 'total tokens',
+    note: 'Planning estimate for input, output, and reasoning when the provider reports them. It is not an enforced Codex limit or a prediction of billed credits.'
+  });
 });
 
 test('ordinary implementation uses Terra', () => {
@@ -24,6 +31,8 @@ test('flaky full suite investigation uses Sol', () => {
   const result = recommend('Investigate why this test fails only when the entire suite runs', clone());
   assert.equal(result.recommended_model, 'gpt-5.6-sol');
   assert.equal(result.task_complexity.dimensions.verification, 2);
+  assert.equal(result.token_budget.suggested_total, 32000);
+  assert.equal(result.token_budget.likely_maximum, 45000);
 });
 
 test('intermittent interacting race investigation uses Astra', () => {
@@ -58,6 +67,9 @@ test('malformed registry and policy are rejected', () => {
   const other = clone();
   other.policy.tier_thresholds = [4, 2, 9];
   assert.throws(() => validateConfig(other), /tier_thresholds/);
+  const missingBudget = clone();
+  delete missingBudget.policy.token_budget;
+  assert.throws(() => validateConfig(missingBudget), /token_budget/);
 });
 
 test('CLI parse and recommend JSON do not execute Codex', () => {

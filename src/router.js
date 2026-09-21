@@ -39,6 +39,11 @@ export function validateConfig(config) {
   assert(config.pricing && typeof config.pricing.as_of === 'string' && Array.isArray(config.pricing.sources), 'pricing provenance required');
   const tokens = config.policy.estimated_tokens;
   assert(tokens && ['input', 'cached_input', 'output'].every(x => Number.isFinite(tokens[x]) && tokens[x] >= 0), 'bad estimated_tokens');
+  const budget = config.policy.token_budget;
+  assert(budget && budget.base_total_by_capability && budget.effort_multipliers && budget.likely_range, 'token_budget is required');
+  for (const [capability, value] of Object.entries(budget.base_total_by_capability)) assert(Number.isInteger(+capability) && Number.isFinite(value) && value > 0, 'bad token_budget base_total_by_capability');
+  for (const [effort, value] of Object.entries(budget.effort_multipliers)) assert(EFFORTS.includes(effort) && Number.isFinite(value) && value > 0, 'bad token_budget effort_multipliers');
+  assert(Number.isFinite(budget.likely_range.lower_multiplier) && Number.isFinite(budget.likely_range.upper_multiplier) && budget.likely_range.lower_multiplier > 0 && budget.likely_range.lower_multiplier < budget.likely_range.upper_multiplier, 'bad token_budget likely_range');
   return config;
 }
 
@@ -73,6 +78,24 @@ function chooseEffort(model, analysis) {
   return supported.find(e => EFFORTS.indexOf(e) >= EFFORTS.indexOf(desired)) ?? supported.at(-1);
 }
 
+function roundTokenCount(value) {
+  return Math.ceil(value / 1000) * 1000;
+}
+
+function suggestTokenBudget(model, effort, config) {
+  const budget = config.policy.token_budget;
+  const base = budget.base_total_by_capability[String(model.capability)];
+  if (!base) throw new Error(`Invalid configuration: no token budget for capability ${model.capability}`);
+  const target = roundTokenCount(base * budget.effort_multipliers[effort]);
+  return {
+    suggested_total: target,
+    likely_minimum: roundTokenCount(target * budget.likely_range.lower_multiplier),
+    likely_maximum: roundTokenCount(target * budget.likely_range.upper_multiplier),
+    unit: budget.unit,
+    note: budget.note
+  };
+}
+
 export function recommend(task, config, options = {}) {
   validateConfig(config);
   const analysis = analyze(task, config);
@@ -101,6 +124,7 @@ export function recommend(task, config, options = {}) {
   const tokens = config.policy.estimated_tokens;
   const ranked = allowed.map(m => ({ model: m.id, name: m.name, reasoning_effort: chooseEffort(m, analysis), estimated_api_cost_usd: estimateCost(m, tokens) }));
   const selectedCost = estimateCost(selected, tokens);
+  const effort = chooseEffort(selected, analysis);
   return {
     schema_version: 1,
     backend: 'heuristic',
@@ -108,11 +132,12 @@ export function recommend(task, config, options = {}) {
     inferred_capability_tier: tier,
     recommended_model: selected.id,
     recommended_name: selected.name,
-    reasoning_effort: chooseEffort(selected, analysis),
+    reasoning_effort: effort,
     constrained,
     cheaper_candidate: ranked.filter(x => x.estimated_api_cost_usd < selectedCost).at(-1) ?? null,
     stronger_candidate: ranked.find(x => config.models.find(m => m.id === x.model).capability > selected.capability) ?? null,
     alternatives: ranked,
+    token_budget: suggestTokenBudget(selected, effort, config),
     explanation: reasons,
     cost: { ...config.pricing, estimated_api_cost_usd: selectedCost, assumed_tokens: tokens, note: 'Token estimate assumes equal usage across models; effort can change token use. No calibrated success probability or Codex credit estimate is claimed.' }
   };
@@ -130,6 +155,6 @@ export function formatRecommendation(result) {
   for (const reason of result.explanation) lines.push(`  - ${reason}`);
   if (result.cheaper_candidate) lines.push('', `Cheaper candidate: ${result.cheaper_candidate.name} / ${result.cheaper_candidate.reasoning_effort} (not assessed as equally adequate)`);
   if (result.stronger_candidate) lines.push(`Stronger candidate: ${result.stronger_candidate.name} / ${result.stronger_candidate.reasoning_effort}`);
-  lines.push('', `Illustrative API token cost: $${result.cost.estimated_api_cost_usd.toFixed(4)} (${result.cost.as_of})`, result.cost.basis, result.cost.note);
+  lines.push('', `Suggested token budget: ${result.token_budget.suggested_total.toLocaleString()} ${result.token_budget.unit}`, `Likely planning range: ${result.token_budget.likely_minimum.toLocaleString()}–${result.token_budget.likely_maximum.toLocaleString()} ${result.token_budget.unit}`, result.token_budget.note, '', `Illustrative API token cost: $${result.cost.estimated_api_cost_usd.toFixed(4)} (${result.cost.as_of})`, result.cost.basis, result.cost.note);
   return `${lines.join('\n')}\n`;
 }

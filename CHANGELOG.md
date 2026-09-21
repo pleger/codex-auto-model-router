@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.1
+
+- Add a configurable token-budget recommendation with a target and planning range for each model and reasoning effort.
+
 ## 0.1.0
 
 - Add a local, explainable `codex-auto recommend` CLI with human and JSON output.

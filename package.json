@@ -1,6 +1,6 @@
 {
   "name": "codex-auto-model-router",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Explainable, local recommendation of Codex models and reasoning effort",
   "keywords": [
     "codex",
