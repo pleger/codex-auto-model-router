@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { readFileSync } from 'node:fs';
+import { readFileSync, realpathSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { resolve, dirname } from 'node:path';
 import { recommend, validateConfig, formatRecommendation } from '../src/router.js';
@@ -54,4 +54,4 @@ export function main(args = process.argv.slice(2), io = { stdout: process.stdout
   }
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) process.exitCode = main();
+if (process.argv[1] && realpathSync(resolve(process.argv[1])) === fileURLToPath(import.meta.url)) process.exitCode = main();
