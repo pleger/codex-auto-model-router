@@ -1,8 +1,6 @@
-# Codex Auto Model Router
+# Codex Auto Recommendation Router: Transparent and Configurable
 
-**A Transparent, Configurable Codex Auto Model Router**
-
-Pick a sensible Codex model and token budget before you start a coding task.
+Automatically recommend a sensible Codex model, reasoning effort, and planning token budget before you start a coding task.
 
 The strongest model can be useful for a difficult investigation, but many changes are clear and routine. Codex Auto Model Router reads your task description and recommends a model and reasoning effort, with a short explanation of why it chose them.
 
