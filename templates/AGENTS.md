@@ -1,0 +1,7 @@
+# Model routing
+
+Before substantial coding work, choose the least costly model and reasoning effort likely to meet the task's quality bar. Judge ambiguity, scope, reasoning, dependencies, verification, and risk. Treat file count as scope, not as a direct measure of intelligence required. Keep clear mechanical work on a cheaper model; use stronger reasoning for uncertain causes, interacting systems, high impact changes, or repeated experiments.
+
+When a model choice is useful, run `codex-auto recommend --json "<task>"` (or `codex-auto recommend --json --prompt-file <file>`). Use its explanation and the repository's router configuration as guidance. Its confidence is heuristic signal coverage, and its API price estimate does not predict Codex credits. If the CLI is unavailable, apply the same principles without inventing a numeric score or cost.
+
+An agent cannot change its own model mid-turn. Use an appropriately configured subagent only for a bounded independent task when delegation has clear value and is permitted. Avoid parallel agents for work that one agent can handle efficiently. Escalate after objective evidence such as failing tests, a failed build, or an unresolved reproducible error; do not escalate solely on an agent's self-report. Respect the user's model, budget, and delegation choices. Briefly state a material routing decision when it affects cost or quality.

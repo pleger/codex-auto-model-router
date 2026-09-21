@@ -1,0 +1,30 @@
+{
+  "schema_version": 1,
+  "pricing": {
+    "currency": "USD",
+    "unit": "per 1M tokens",
+    "as_of": "2026-09-20",
+    "basis": "OpenAI API standard token rates; comparison proxy, not Codex subscription credits",
+    "sources": ["https://developers.openai.com/api/docs/models/gpt-5.6-luna", "https://developers.openai.com/api/docs/models/gpt-5.6-terra", "https://developers.openai.com/api/docs/models/gpt-5.6-sol", "https://developers.openai.com/api/docs/models/gpt-6-astra"]
+  },
+  "dimensions": {
+    "ambiguity": { "weight": 1, "max": 2 },
+    "scope": { "weight": 0.5, "max": 2 },
+    "reasoning": { "weight": 1.5, "max": 2 },
+    "dependencies": { "weight": 1, "max": 2 },
+    "verification": { "weight": 1, "max": 2 },
+    "risk": { "weight": 1, "max": 2 }
+  },
+  "policy": {
+    "tier_thresholds": [2.5, 5.5, 9],
+    "max_model": null,
+    "allow_astra_automatic": false,
+    "estimated_tokens": { "input": 10000, "cached_input": 0, "output": 2000 }
+  },
+  "models": [
+    { "id": "gpt-5.6-luna", "name": "GPT-5.6 Luna", "capability": 1, "enabled": true, "reasoning": ["none", "low", "medium", "high", "xhigh", "max"], "pricing": { "input": 0.2, "cached_input": 0.02, "output": 1.2 }, "context_tokens": 1050000 },
+    { "id": "gpt-5.6-terra", "name": "GPT-5.6 Terra", "capability": 2, "enabled": true, "reasoning": ["none", "low", "medium", "high", "xhigh", "max"], "pricing": { "input": 2, "cached_input": 0.2, "output": 12 }, "context_tokens": 1050000 },
+    { "id": "gpt-5.6-sol", "name": "GPT-5.6 Sol", "capability": 3, "enabled": true, "reasoning": ["none", "low", "medium", "high", "xhigh", "max"], "pricing": { "input": 4, "cached_input": 0.4, "output": 20 }, "context_tokens": 1050000 },
+    { "id": "gpt-6-astra", "name": "GPT-6 Astra", "capability": 4, "enabled": true, "reasoning": ["low", "medium", "high", "xhigh", "max"], "pricing": { "input": 10, "cached_input": 1, "output": 50 }, "context_tokens": 1050000 }
+  ]
+}
