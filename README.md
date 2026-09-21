@@ -31,7 +31,6 @@ You should see a recommendation similar to this:
 Recommended: GPT-5.6 Sol / high
 Confidence: 69% (heuristic signal coverage)
 Score: 7 raw; 8/12 weighted
-Suggested token budget: 32,000 total tokens (likely range: 20,000–45,000)
 
 Complexity:
   ambiguity      2
@@ -44,6 +43,17 @@ Complexity:
 Why:
   - The cause or correct fix needs investigation.
   - Reproduction or iterative validation may be needed.
+
+Cheaper candidate: GPT-5.6 Terra / high (not assessed as equally adequate)
+Stronger candidate: GPT-6 Astra / high
+
+Suggested token budget: 32,000 total tokens
+Likely planning range: 20,000–45,000 total tokens
+Planning estimate for input, output, and reasoning when the provider reports them. It is not an enforced Codex limit or a prediction of billed credits.
+
+Illustrative API token cost: $0.0800 (2026-09-20)
+OpenAI API standard token rates; comparison proxy, not Codex subscription credits
+Token estimate assumes equal usage across models; effort can change token use. No calibrated success probability or Codex credit estimate is claimed.
 ```
 
 Every recommendation is local and advisory. The tool does not start Codex, inspect your repository, run commands, send your prompt anywhere, or change files.
