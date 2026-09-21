@@ -35,14 +35,21 @@ test('flaky full suite investigation uses Sol', () => {
   assert.equal(result.token_budget.likely_maximum, 45000);
 });
 
-test('intermittent interacting race investigation uses Astra', () => {
-  const result = recommend('Investigate an intermittent race condition across multiple services with unknown root cause and repeated experiments', clone());
+test('Astra requires automatic escalation to be enabled', () => {
+  const task = 'Investigate an intermittent race condition across multiple services with unknown root cause and repeated experiments';
+  const defaultResult = recommend(task, clone());
+  assert.equal(defaultResult.recommended_model, 'gpt-5.6-sol');
+  assert.ok(defaultResult.explanation.some(x => x.includes('disabled by policy')));
+  const config = clone();
+  config.policy.allow_astra_automatic = true;
+  const result = recommend(task, config);
   assert.equal(result.recommended_model, 'gpt-6-astra');
   assert.ok(result.explanation.some(x => x.includes('Astra')));
 });
 
 test('disabled model is never selected and cap is respected', () => {
   const config = clone();
+  config.policy.allow_astra_automatic = true;
   config.models.find(m => m.id === 'gpt-6-astra').enabled = false;
   let result = recommend('Investigate an intermittent race condition across multiple services with repeated experiments', config);
   assert.equal(result.recommended_model, 'gpt-5.6-sol');
@@ -70,6 +77,9 @@ test('malformed registry and policy are rejected', () => {
   const missingBudget = clone();
   delete missingBudget.policy.token_budget;
   assert.throws(() => validateConfig(missingBudget), /token_budget/);
+  const badAstraPolicy = clone();
+  delete badAstraPolicy.policy.allow_astra_automatic;
+  assert.throws(() => validateConfig(badAstraPolicy), /allow_astra_automatic/);
 });
 
 test('CLI parse and recommend JSON do not execute Codex', () => {

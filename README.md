@@ -89,6 +89,90 @@ For example, a rename across many files can stay on Luna because the work is mec
 
 The initial registry covers GPT-5.6 Luna, Terra, and Sol, plus GPT-6 Astra. Model IDs, enabled status, reasoning levels, prices, and policy thresholds live in [config/default.json](config/default.json), so they can be updated without editing the routing engine. To try your own settings, copy that file and pass the **complete** JSON file with `--config path/to/router.json`.
 
+## Configure it for your team
+
+Start with a complete copy of the shipped policy, then use it for a recommendation:
+
+```bash
+cp config/default.json router.json
+codex-auto recommend --config router.json "Review this production database migration"
+```
+
+The router validates the configuration before it evaluates a task. A custom file replaces the default; it is not a partial override.
+
+### `pricing`: document the cost comparison
+
+The top-level `pricing` object supplies the currency, unit, date, explanation, and source URLs shown alongside the illustrative API-cost estimate. It does not change the selected model. Update `as_of`, `basis`, and `sources` when you refresh prices.
+
+Each model also has a `pricing` object:
+
+```json
+"pricing": { "input": 2, "cached_input": 0.2, "output": 12 }
+```
+
+These values use the top-level unit, currently USD per one million tokens. They affect only the comparison estimate. They are not Codex subscription-credit prices.
+
+### `dimensions`: tune what makes a task difficult
+
+The task-text heuristic scores six dimensions, each from zero to its `max`. `weight` decides how much that score contributes to the model tier:
+
+| Dimension | Meaning | Default weighting choice |
+| --- | --- | --- |
+| `ambiguity` | Unknown cause, requirement, or fix | Standard weight |
+| `scope` | Work across files, layers, or systems | Half weight: broad mechanical work should stay inexpensive |
+| `reasoning` | Diagnostic, architectural, or algorithmic work | Higher weight |
+| `dependencies` | Interacting services, APIs, or components | Standard weight |
+| `verification` | Reproduction, testing, and iterative validation | Standard weight |
+| `risk` | Security, data, or production impact | Standard weight |
+
+For example, raise the importance of risky changes:
+
+```json
+"risk": { "weight": 2, "max": 2 }
+```
+
+Keep `max` at `2` with the current heuristic. Raising a `weight` moves matching tasks to higher capability tiers more readily.
+
+### `policy`: set escalation and planning rules
+
+`tier_thresholds` maps the weighted score to capability tiers. The default `[2.5, 5.5, 9]` means Luna below 2.5, Terra from 2.5 to below 5.5, Sol from 5.5 to below 9, and Astra at 9 or above. Lower a threshold to escalate sooner; raise it to favour lower tiers.
+
+`max_model` sets a persistent ceiling. Use `null` for no ceiling, or an exact model ID such as `"gpt-5.6-sol"`. The one-off `--max-model` flag takes precedence over this setting.
+
+`allow_astra_automatic` controls whether a task may automatically reach Astra. It defaults to `false`, so even a tier-4 task is limited to Sol unless you set it to `true`:
+
+```json
+"allow_astra_automatic": true
+```
+
+`estimated_tokens` is the fixed hypothetical input, cached-input, and output mix used to calculate the illustrative API-cost comparison. It does not set a limit or affect routing.
+
+`token_budget` controls the planning suggestion. `base_total_by_capability` supplies a starting total for each tier; `effort_multipliers` adjusts it for the chosen reasoning effort; and `likely_range` creates the displayed lower and upper range. With the defaults, Sol at `high` is `20,000 × 1.6 = 32,000` total tokens, with a 20,000–45,000 planning range. This is guidance, not a Codex limit.
+
+### `models`: define the selectable catalog
+
+Each item in `models` describes one router option:
+
+```json
+{
+  "id": "gpt-5.6-terra",
+  "name": "GPT-5.6 Terra",
+  "capability": 2,
+  "enabled": true,
+  "reasoning": ["none", "low", "medium", "high", "xhigh", "max"],
+  "pricing": { "input": 2, "cached_input": 0.2, "output": 12 },
+  "context_tokens": 1050000
+}
+```
+
+- `id` is unique and is the model identifier used by the policy.
+- `name` is the label in the recommendation.
+- `capability` is the tier used for routing and must have a matching base token budget.
+- `enabled` determines whether the router may select the model.
+- `reasoning` limits the effort levels the router may recommend.
+- `pricing` provides the comparison-rate assumptions.
+- `context_tokens` records context-window metadata for future context-aware routing; the current heuristic does not use it.
+
 ### Reading the cost, confidence, and token budget fields
 
 - **Confidence** describes how many explicit task signals the heuristic recognized. It is not a measured probability that the selected model will solve the task.

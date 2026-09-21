@@ -36,6 +36,7 @@ export function validateConfig(config) {
     assert(model.pricing && ['input', 'cached_input', 'output'].every(x => Number.isFinite(model.pricing[x]) && model.pricing[x] >= 0), `bad pricing for ${model.id}`);
   }
   if (config.policy.max_model !== null && config.policy.max_model !== undefined) assert(ids.has(config.policy.max_model), 'unknown max_model');
+  assert(typeof config.policy.allow_astra_automatic === 'boolean', 'allow_astra_automatic must be boolean');
   assert(config.pricing && typeof config.pricing.as_of === 'string' && Array.isArray(config.pricing.sources), 'pricing provenance required');
   const tokens = config.policy.estimated_tokens;
   assert(tokens && ['input', 'cached_input', 'output'].every(x => Number.isFinite(tokens[x]) && tokens[x] >= 0), 'bad estimated_tokens');
@@ -117,6 +118,10 @@ export function recommend(task, config, options = {}) {
   if (ids.includes('high_risk') && ids.includes('complex_reasoning')) { tier = Math.max(tier, 3); reasons.push('High-impact technical reasoning sets a Sol floor.'); }
   if (ids.includes('debug') && ids.includes('interacting') && ids.includes('iterative')) { tier = Math.max(tier, 4); reasons.push('Unknown cause, interacting systems, and iterative validation suggest Astra.'); }
   if (ids.includes('failed_attempt')) { tier = Math.max(tier, 4); reasons.push('A reported failed lower-tier attempt supports escalation.'); }
+  if (tier === 4 && !config.policy.allow_astra_automatic) {
+    tier = 3;
+    reasons.push('Automatic Astra recommendations are disabled by policy.');
+  }
   if (!reasons.length) reasons.push('Few specific task signals were detected; this is a low-confidence starting point.');
   const selected = allowed.find(m => m.capability >= tier) ?? allowed.at(-1);
   const constrained = selected.capability < tier;
