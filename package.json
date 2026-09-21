@@ -2,14 +2,41 @@
   "name": "codex-auto-model-router",
   "version": "0.1.0",
   "description": "Explainable, local recommendation of Codex models and reasoning effort",
-  "keywords": ["codex", "model-router", "cli", "skills"],
-  "repository": { "type": "git", "url": "git+https://github.com/pleger/codex-auto-model-router.git" },
+  "keywords": [
+    "codex",
+    "model-router",
+    "cli",
+    "skills"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/pleger/codex-auto-model-router.git"
+  },
   "homepage": "https://github.com/pleger/codex-auto-model-router#readme",
-  "bugs": { "url": "https://github.com/pleger/codex-auto-model-router/issues" },
+  "bugs": {
+    "url": "https://github.com/pleger/codex-auto-model-router/issues"
+  },
   "type": "module",
-  "bin": { "codex-auto": "./bin/codex-auto.js" },
-  "scripts": { "test": "node --test", "check": "node --check bin/codex-auto.js && node --check src/router.js" },
-  "engines": { "node": ">=20" },
+  "bin": {
+    "codex-auto": "bin/codex-auto.js"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check": "node --check bin/codex-auto.js && node --check src/router.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "license": "MIT",
-  "files": ["bin/", "src/", "config/", "templates/", ".agents/skills/model-router/", "docs/", "LICENSE", "README.md", "CHANGELOG.md"]
+  "files": [
+    "bin/",
+    "src/",
+    "config/",
+    "templates/",
+    ".agents/skills/model-router/",
+    "docs/",
+    "LICENSE",
+    "README.md",
+    "CHANGELOG.md"
+  ]
 }
