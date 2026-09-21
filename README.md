@@ -184,6 +184,19 @@ Each item in `models` describes one router option:
 
 These limits are intentional: the project needs benchmark results before it can make evidence-based claims about success rates or cost per successful task.
 
+## Related tools and where this project differs
+
+Model selection for coding agents is an active area, and this project builds alongside existing work:
+
+- [GitHub Copilot Auto model selection](https://docs.github.com/en/copilot/concepts/models/auto-model-selection) is a mature integrated feature that routes tasks using task optimization together with service health and availability signals.
+- [Saadfk/codex-model-router](https://github.com/Saadfk/codex-model-router/blob/main/docs/codex_model_router.md) can classify a prompt, select a Codex model and effort, and dispatch work. It includes a local heuristic-only fallback.
+- [gitguffaw/codex-router](https://github.com/gitguffaw/codex-router/blob/codex-router-main/README.md) reads the installed Codex model catalog and provides commands for selecting models, reasoning effort, and service tier.
+- [tkellogg/model-selection](https://github.com/tkellogg/model-selection/blob/main/SKILL.md) ranks available models using benchmark, price, speed, and task-fit data across supported coding runtimes.
+
+Codex Auto Model Router is a narrower proof of concept. It is deliberately local, deterministic, and recommendation-only: it does not classify the prompt with a remote model, dispatch a coding task, or change an active Codex chat. Its intended contribution is an inspectable policy that teams can version and edit: task-signal weights, tier thresholds, enabled models, model ceilings, price assumptions, and token-budget rules. The `AGENTS.md` template and `model-router` Skill reuse that visible policy in Codex-native workflows.
+
+This is not evidence that its recommendations are better than those of other tools. Benchmarking against representative tasks, objective checks, repeated runs, latency, and token use is required before making that claim.
+
 ## Use it with Codex
 
 The router also provides reusable guidance for Codex-native workflows:
