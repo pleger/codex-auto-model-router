@@ -101,4 +101,4 @@ npm run check
 
 The CLI is in [bin/codex-auto.js](bin/codex-auto.js), routing logic is in [src/router.js](src/router.js), and tests are in [tests/router.test.js](tests/router.test.js). Recommendations run locally without an API key or network request. No task text is uploaded by this command.
 
-This project is released under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance and [SECURITY.md](SECURITY.md) for private vulnerability reports.
+This project is released under the [MIT License](LICENSE). See [CONTRIBUTING.md](CONTRIBUTING.md) for contribution guidance, [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) for community expectations, and [SECURITY.md](SECURITY.md) for private vulnerability reports.
